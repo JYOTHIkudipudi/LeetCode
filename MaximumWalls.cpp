@@ -62,72 +62,46 @@ class Solution {
 public:
     int maxWalls(vector<int>& robots, vector<int>& distance, vector<int>& walls) {
         int n = robots.size();
-        
-        sort(walls.begin(), walls.end());
-        
-        vector<pair<int,int>> r;
-        for(int i = 0; i < n; i++) 
-            r.push_back({robots[i], distance[i]});
-        
-        sort(r.begin(), r.end());
-        
-        vector<vector<int>> intervals; // {start, end, weight}
-        
-        for(int i = 0; i < n; i++){
-            int pos = r[i].first;
-            int d = r[i].second;
-            
-            int prev = (i > 0) ? r[i-1].first : -1000000000;
-            int next = (i < n-1) ? r[i+1].first : 1000000000;
-            
-            // LEFT
-            int L = max(pos - d, prev + 1);
-            int R = pos;
-            
-            if(L <= R){
-                int cnt = upper_bound(walls.begin(), walls.end(), R) -
-                          lower_bound(walls.begin(), walls.end(), L);
-                if(cnt > 0)
-                    intervals.push_back({L, R, cnt});
-            }
-            
-            // RIGHT
-            L = pos;
-            R = min(pos + d, next - 1);
-            
-            if(L <= R){
-                int cnt = upper_bound(walls.begin(), walls.end(), R) -
-                          lower_bound(walls.begin(), walls.end(), L);
-                if(cnt > 0)
-                    intervals.push_back({L, R, cnt});
-            }
+        vector<pair<int, int>> arr(n);
+        for (int i = 0; i < n; i++) {
+            arr[i] = {robots[i], distance[i]};
         }
-        
-        sort(intervals.begin(), intervals.end(), [](auto &a, auto &b){
-            return a[1] < b[1];
-        });
-        
-        int m = intervals.size();
-        if(m == 0) return 0;
-        
-        vector<int> dp(m, 0);
-        vector<int> ends;
-        
-        for(auto &it : intervals)
-            ends.push_back(it[1]);
-        
-        for(int i = 0; i < m; i++){
-            int L = intervals[i][0];
-            int weight = intervals[i][2];
-            
-            int j = upper_bound(ends.begin(), ends.end(), L - 1) - ends.begin() - 1;
-            
-            int take = weight + (j >= 0 ? dp[j] : 0);
-            int skip = (i > 0 ? dp[i-1] : 0);
-            
-            dp[i] = max(take, skip);
-        }
-        
-        return dp[m-1];
+        ranges::sort(arr, {}, &pair<int, int>::first);
+        ranges::sort(walls);
+
+        vector f(n, vector<int>(2, -1));
+
+        auto dfs = [&](this auto&& dfs, int i, int j) -> int {
+            if (i < 0) {
+                return 0;
+            }
+            if (f[i][j] != -1) {
+                return f[i][j];
+            }
+
+            int left = arr[i].first - arr[i].second;
+            if (i > 0) {
+                left = max(left, arr[i - 1].first + 1);
+            }
+            int l = ranges::lower_bound(walls, left) - walls.begin();
+            int r = ranges::lower_bound(walls, arr[i].first + 1) - walls.begin();
+            int ans = dfs(i - 1, 0) + (r - l);
+
+            int right = arr[i].first + arr[i].second;
+            if (i + 1 < n) {
+                if (j == 0) {
+                    right = min(right, arr[i + 1].first - arr[i + 1].second - 1);
+                } else {
+                    right = min(right, arr[i + 1].first - 1);
+                }
+            }
+            l = ranges::lower_bound(walls, arr[i].first) - walls.begin();
+            r = ranges::lower_bound(walls, right + 1) - walls.begin();
+            ans = max(ans, dfs(i - 1, 1) + (r - l));
+
+            return f[i][j] = ans;
+        };
+
+        return dfs(n - 1, 1);
     }
 };
