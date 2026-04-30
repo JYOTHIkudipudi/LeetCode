@@ -52,7 +52,7 @@ Constraints:
 ​​​​​​​grid[0][0] == 0
 0 <= grid[i][j] <= 2   */
 
-class Solution {
+class Solution { 
 public:
     int maxPathScore(vector<vector<int>>& grid, int k) {
         int m = grid.size(), n = grid[0].size();
