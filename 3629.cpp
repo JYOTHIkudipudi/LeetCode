@@ -58,96 +58,67 @@ Constraints:
   */
 
 
+#include <vector>
+#include <queue>
+#include <unordered_map>
+#include <algorithm>
+
+using namespace std;
+
 class Solution {
 public:
     int minJumps(vector<int>& nums) {
         int n = nums.size();
+        if (n <= 1) return 0;
 
-        if (n == 1) return 0;
-
-        int MAXV = 1000000;
-
-        // SPF sieve
-        vector<int> spf(MAXV + 1);
-
-        for (int i = 0; i <= MAXV; i++)
-            spf[i] = i;
-
-        for (int i = 2; i * i <= MAXV; i++) {
-            if (spf[i] == i) {
-                for (int j = i * i; j <= MAXV; j += i) {
-                    if (spf[j] == j)
-                        spf[j] = i;
+        int max_val = *max_element(nums.begin(), nums.end());
+        vector<int> spf(max_val + 1, 0);
+        for (int i = 2; i <= max_val; ++i) {
+            if (spf[i] == 0) {
+                for (int j = i; j <= max_val; j += i) {
+                    if (spf[j] == 0) spf[j] = i;
                 }
             }
         }
 
-        auto isPrime = [&](int x) {
-            return x >= 2 && spf[x] == x;
-        };
-
-        // prime -> indices divisible by it
-        unordered_map<int, vector<int>> mp;
-
-        for (int i = 0; i < n; i++) {
-            int x = nums[i];
-
-            unordered_set<int> used;
-
-            while (x > 1) {
-                int p = spf[x];
-
-                if (!used.count(p)) {
-                    mp[p].push_back(i);
-                    used.insert(p);
-                }
-
-                while (x % p == 0)
-                    x /= p;
+        // Map each prime factor to the indices containing numbers divisible by it
+        unordered_map<int, vector<int>> prime_to_indices;
+        for (int i = 0; i < n; ++i) {
+            int temp = nums[i];
+            while (temp > 1) {
+                int p = spf[temp];
+                prime_to_indices[p].push_back(i);
+                while (temp % p == 0) temp /= p;
             }
         }
 
         queue<int> q;
-        vector<int> dist(n, -1);
-
         q.push(0);
+        vector<int> dist(n, -1);
         dist[0] = 0;
-
-        unordered_set<int> usedPrime;
+        vector<bool> visited_prime(max_val + 1, false);
 
         while (!q.empty()) {
-            int i = q.front();
+            int u = q.front();
             q.pop();
 
-            int d = dist[i];
+            if (u == n - 1) return dist[u];
 
-            if (i == n - 1)
-                return d;
-
-            // left
-            if (i - 1 >= 0 && dist[i - 1] == -1) {
-                dist[i - 1] = d + 1;
-                q.push(i - 1);
+            // Standard moves: i+1 and i-1
+            for (int v : {u - 1, u + 1}) {
+                if (v >= 0 && v < n && dist[v] == -1) {
+                    dist[v] = dist[u] + 1;
+                    q.push(v);
+                }
             }
 
-            // right
-            if (i + 1 < n && dist[i + 1] == -1) {
-                dist[i + 1] = d + 1;
-                q.push(i + 1);
-            }
-
-            int val = nums[i];
-
-            // teleport only if current value itself is prime
-            if (isPrime(val) && !usedPrime.count(val)) {
-
-                usedPrime.insert(val);
-
-                for (int nxt : mp[val]) {
-
-                    if (dist[nxt] == -1) {
-                        dist[nxt] = d + 1;
-                        q.push(nxt);
+            // Prime Teleportation: If nums[u] is prime
+            if (spf[nums[u]] == nums[u] && !visited_prime[nums[u]]) {
+                visited_prime[nums[u]] = true;
+                for (int v : prime_to_indices[nums[u]]) {
+                    if (dist[v] == -1) {
+                        dist[v] = dist[u] + 1;
+                        q.push(v);
                     }
                 }
             }
@@ -156,4 +127,5 @@ public:
         return -1;
     }
 };
+
 };
