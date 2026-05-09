@@ -1,21 +1,26 @@
- class Solution {
+class Solution {
 public:
 
     long long determinant(vector<vector<long double>>& mat, int n) {
+
         long double det = 1;
 
         for (int i = 0; i < n; i++) {
 
             int pivot = i;
 
+            // Find pivot
             for (int j = i; j < n; j++) {
-                if (fabsl(mat[j][i]) > fabsl(mat[pivot][i]))
+                if (fabsl(mat[j][i]) > fabsl(mat[pivot][i])) {
                     pivot = j;
+                }
             }
 
+            // Singular matrix
             if (fabsl(mat[pivot][i]) < 1e-9)
                 return 0;
 
+            // Swap rows if needed
             if (pivot != i) {
                 swap(mat[pivot], mat[i]);
                 det *= -1;
@@ -23,6 +28,7 @@ public:
 
             det *= mat[i][i];
 
+            // Gaussian elimination
             for (int j = i + 1; j < n; j++) {
 
                 long double factor = mat[j][i] / mat[i][i];
@@ -36,15 +42,17 @@ public:
         return llround(det);
     }
 
-    long long countSpanningTrees(int n, vector<vector<int>>& edges) {
+    int countSpanTree(int n, vector<vector<int>>& edges) {
 
         int m = edges.size();
 
-        // Already a tree
+        // If already a tree
         if (m == n - 1)
             return 1;
 
-        vector<vector<long double>> lap(n, vector<long double>(n, 0));
+        // Build Laplacian matrix
+        vector<vector<long double>> lap(n,
+                                        vector<long double>(n, 0));
 
         for (auto &e : edges) {
 
@@ -68,6 +76,6 @@ public:
             }
         }
 
-        return determinant(cof, n - 1);
+        return (int)determinant(cof, n - 1);
     }
-}; 
+};
