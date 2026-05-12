@@ -1,6 +1,6 @@
 class Solution {
 public:
-
+   
     int minimumEffort(vector<vector<int>>& tasks) {
 
         sort(tasks.begin(), tasks.end(),
