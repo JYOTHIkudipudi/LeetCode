@@ -1,0 +1,78 @@
+/* 2472. Maximum Number of Non-overlapping Palindrome Substrings
+
+You are given a string s and a positive integer k.
+
+Select a set of non-overlapping substrings from the string s that satisfy the following conditions:
+
+The length of each substring is at least k.
+Each substring is a palindrome.
+Return the maximum number of substrings in an optimal selection.
+
+A substring is a contiguous sequence of characters within a string.
+
+ 
+
+Example 1:
+
+Input: s = "abaccdbbd", k = 3
+Output: 2
+Explanation: We can select the substrings underlined in s = "abaccdbbd". Both "aba" and "dbbd" are palindromes and have a length of at least k = 3.
+It can be shown that we cannot find a selection with more than two valid substrings.
+Example 2:
+
+Input: s = "adbcda", k = 2
+Output: 0
+Explanation: There is no palindrome substring of length at least 2 in the string.
+ 
+
+Constraints:
+
+1 <= k <= s.length <= 2000
+s consists of lowercase English letters.  */
+
+class Solution {
+public:
+    int maxPalindromes(string s, int k) {
+        int n = s.size();
+
+        // pal[l][r] = true if s[l...r] is a palindrome
+        vector<vector<bool>> pal(n, vector<bool>(n, false));
+
+        // Build palindrome table
+        for (int len = 1; len <= n; len++) {
+            for (int l = 0; l + len - 1 < n; l++) {
+                int r = l + len - 1;
+
+                if (len == 1) {
+                    pal[l][r] = true;
+                }
+                else if (len == 2) {
+                    pal[l][r] = (s[l] == s[r]);
+                }
+                else {
+                    pal[l][r] = (s[l] == s[r] && pal[l + 1][r - 1]);
+                }
+            }
+        }
+
+        // dp[i] = maximum number of valid palindromes
+        // using first i characters
+        vector<int> dp(n + 1, 0);
+
+        for (int i = 1; i <= n; i++) {
+            // Don't use s[i-1]
+            dp[i] = dp[i - 1];
+
+            // Try every palindrome ending at i-1
+            for (int l = 0; l < i; l++) {
+                int len = i - l;
+
+                if (len >= k && pal[l][i - 1]) {
+                    dp[i] = max(dp[i], dp[l] + 1);
+                }
+            }
+        }
+
+        return dp[n];
+    }
+};
