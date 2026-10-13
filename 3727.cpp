@@ -45,24 +45,31 @@ Constraints:
 -4 * 104 <= nums[i] <= 4 * 104    */
 
 
+
 class Solution {
 public:
     long long maxAlternatingSum(vector<int>& nums) {
-        sort(nums.begin(), nums.end());
+        vector<long long> a;
 
+        for (int x : nums) {
+            a.push_back(1LL * x * x);
+        }
+
+        sort(a.begin(), a.end());
+
+        int n = a.size();
         long long ans = 0;
-        int n = nums.size();
 
         for (int i = 0; i < n; i++) {
-            long long x = nums[i];
-
             if (i < n / 2) {
-                ans -= x * x;
+                ans -= a[i];
             } else {
-                ans += x * x;
+                ans += a[i];
             }
         }
 
         return ans;
     }
+};
+
 };
