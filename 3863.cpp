@@ -45,7 +45,6 @@ Constraints:
 s consists of only lowercase English letters.
  
 */
-
 class Solution {
 public:
     int minOperations(string s) {
@@ -57,28 +56,20 @@ public:
         if (n == 2)
             return -1;
 
-        if (n == 3) {
-            if (s[0] <= s[1] && s[1] <= s[2])
-                return 0;
-
-            if (s[0] <= s[2] && s[2] <= s[1])
-                return 1;
-
-            if (s[1] <= s[0] && s[0] <= s[2])
-                return 1;
-
-            return -1;
-        }
-
         char mn = *min_element(s.begin(), s.end());
         char mx = *max_element(s.begin(), s.end());
 
         if (s[0] == mn || s[n - 1] == mx)
             return 1;
 
-        if (s[0] == mx && s[n - 1] == mn)
+        bool minOnlyAtEnd   = (s[n - 1] == mn && count(s.begin(), s.end(), mn) == 1);
+        bool maxOnlyAtFront = (s[0] == mx && count(s.begin(), s.end(), mx) == 1);
+
+        if (minOnlyAtEnd && maxOnlyAtFront)
             return 3;
 
         return 2;
+    }
+};
     }
 };
