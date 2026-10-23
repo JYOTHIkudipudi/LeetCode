@@ -46,22 +46,20 @@ Constraints:
 0 <= nums[i] <= n - 1
 nums is a permutation of integers from 0 to n - 1.  */
 
-
 class Solution {
 public:
     int sortPermutation(vector<int>& nums) {
-        int n = nums.size();
-        int ans = 0;
+        int ans = -1;
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < nums.size(); i++) {
             if (nums[i] != i) {
-                if (ans == 0) {
-                    ans = nums[i];
-                } else {
-                    ans &= nums[i];
-                }
+                ans &= nums[i];
             }
         }
+
+        return ans == -1 ? 0 : ans;
+    }
+};
 
         return ans;
     }
