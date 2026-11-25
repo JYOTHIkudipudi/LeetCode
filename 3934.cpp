@@ -64,59 +64,56 @@ Constraints:
 1 <= nums[i] <= 105  */
 
 
-class Solution {
+ class Solution {
 public:
-    int minimumLength(vector<int>& nums) {
+    typedef unsigned long long ull;
+    static const ull MOD = (1ULL << 61) - 1;
+
+    static ull mulmod(ull a, ull b) {
+        __uint128_t t = (__uint128_t)a * b;
+        ull lo = (ull)(t & MOD), hi = (ull)(t >> 61);
+        ull r = lo + hi;
+        if (r >= MOD) r -= MOD;
+        return r;
+    }
+
+    int smallestUniqueSubarray(vector<int>& nums) {
         int n = nums.size();
 
-        const long long BASE = 31;
-        const long long MOD = 1000000007;
+        mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+        ull base = rng() % (MOD - 1000) + 500;
 
-        vector<long long> power(n + 1, 1);
-        for (int i = 1; i <= n; i++) {
-            power[i] = (power[i - 1] * BASE) % MOD;
-        }
-
-        vector<long long> prefix(n + 1, 0);
-
+        // prefix hashes and powers
+        vector<ull> h(n + 1, 0), pw(n + 1, 1);
         for (int i = 0; i < n; i++) {
-            prefix[i + 1] =
-                (prefix[i] * BASE + nums[i]) % MOD;
+            h[i + 1] = (mulmod(h[i], base) + (ull)nums[i]) % MOD;
+            pw[i + 1] = mulmod(pw[i], base);
         }
 
-        auto check = [&](int len) {
-            unordered_map<long long, int> freq;
-
-            for (int i = 0; i + len <= n; i++) {
-                long long hash =
-                    (prefix[i + len] -
-                     prefix[i] * power[len] % MOD + MOD) % MOD;
-
-                freq[hash]++;
+        auto hasUnique = [&](int L) -> bool {
+            vector<ull> v;
+            v.reserve(n - L + 1);
+            for (int i = 0; i + L <= n; i++) {
+                ull cur = (h[i + L] + MOD - mulmod(h[i], pw[L])) % MOD;
+                v.push_back(cur);
             }
-
-            for (auto &it : freq) {
-                if (it.second == 1)
-                    return true;
+            sort(v.begin(), v.end());
+            int m = v.size();
+            for (int i = 0; i < m; ) {
+                int j = i;
+                while (j < m && v[j] == v[i]) j++;
+                if (j - i == 1) return true;
+                i = j;
             }
-
             return false;
         };
 
-        int low = 1, high = n;
-        int ans = n;
-
-        while (low <= high) {
-            int mid = low + (high - low) / 2;
-
-            if (check(mid)) {
-                ans = mid;
-                high = mid - 1;
-            } else {
-                low = mid + 1;
-            }
+        int lo = 1, hi = n;  // L = n is always unique
+        while (lo < hi) {
+            int mid = lo + (hi - lo) / 2;
+            if (hasUnique(mid)) hi = mid;
+            else lo = mid + 1;
         }
-
-        return ans;
+        return lo;
     }
 };
